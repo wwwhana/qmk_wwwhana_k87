@@ -1,7 +1,7 @@
 {
-    "name": "XiaBoardK87",
-    "vendorId": "0x320F",
-    "productId": "0x504C",
+    "name": "Xia K87",
+    "vendorId": "0x16C0",
+    "productId": "0x27DB",
     "keycodes": [],
     "menus": [],
     "matrix": { "rows": 6, "cols": 17 },

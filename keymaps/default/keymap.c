@@ -1,7 +1,36 @@
 #include QMK_KEYBOARD_H
-#include "keymap_user.h"
+
+
+typedef union {
+  uint32_t raw;
+  struct {
+    bool mac_layer_enabled :1;
+    bool num_layer_enabled :1;
+  };
+} user_config_t;
 
 user_config_t user_config;
+
+enum my_keycodes {
+  T_NUM = SAFE_RANGE,
+  T_TM,
+  T_MLNG
+};
+
+enum {
+    TD_RST,
+    TD_FN
+};
+
+enum layer_names {
+    _BASE,
+    _MAC,
+    _NUM,
+    _FN,
+};
+
+void switchWinMacLayer(void);
+
 
     /*
      * ┌───┐   ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┐
@@ -158,14 +187,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
         }
             return false;
-        }
-        case T_MLNG:
-              if (record->event.pressed) {
-                register_code(KC_LOPT);
-                register_code(KC_SPC);
-        } else {
-                unregister_code(KC_LOPT);
-                unregister_code(KC_SPC);
         }
     }
     return true;
