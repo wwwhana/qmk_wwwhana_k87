@@ -1,16 +1,5 @@
 #include QMK_KEYBOARD_H
 
-
-typedef union {
-  uint32_t raw;
-  struct {
-    bool mac_layer_enabled :1;
-    bool num_layer_enabled :1;
-  };
-} user_config_t;
-
-user_config_t user_config;
-
 enum my_keycodes {
   T_NUM = SAFE_RANGE,
   T_TM,
@@ -29,7 +18,6 @@ enum layer_names {
     _FN,
 };
 
-void switchWinMacLayer(void);
 
 
     /*
@@ -79,32 +67,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 		_______,    _______,    _______,      _______, _______,    _______, _______, _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,
 		_______,    _______,    _______,      _______, _______,       T_TM, _______, _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,   _______,    _______,
 		_______,    _______,    _______,      _______, _______,    _______, _______, _______,    _______,    _______,    _______,    _______,                _______,
-		_______,                _______,      _______, _______,    _______, _______, _______,    _______,    _______,    _______,      T_NUM,                _______,                _______,
+		_______,                _______,      _______, _______,    _______, _______, _______,    _______,    _______,    UG_TOGG,      T_NUM,                _______,                _______,
 		_______,    _______,    _______,                                    _______,                                     KC_LNG1,    _______,     KC_APP,    KC_LNG2,    _______,    _______,    _______
     ),
 };
 
-void switchWinMacLayer(void) {
-    if(user_config.mac_layer_enabled) {
-        layer_on(_MAC);
-    } else {
-        layer_off(_MAC);
-    }
-}
 
-void keyboard_post_init_user(void) {
-  user_config.raw = eeconfig_read_user();
-  user_config.num_layer_enabled = false;
-  switchWinMacLayer();
-}
-
-void eeconfig_init_user(void) {
-  user_config.raw = 0;
-  user_config.mac_layer_enabled = false;
-  user_config.num_layer_enabled = false;
-  eeconfig_update_user(user_config.raw);
-  switchWinMacLayer();
-}
 
 void dance_bootloader_reset(tap_dance_state_t *state, void *user_data) {
     if (state->count == 1) {
@@ -126,9 +94,11 @@ void dance_fn_reset(tap_dance_state_t *state, void *user_data) {
     if (state->count == 1) {
         layer_off(_FN);
     } else {
-        user_config.mac_layer_enabled = !user_config.mac_layer_enabled;
-        eeconfig_update_user(user_config.raw);
-        switchWinMacLayer();
+        if(layer_state_is(_MAC)) {
+            layer_off(_MAC);
+        } else {
+            layer_on(_MAC);
+        }
     }
 }
 
@@ -153,9 +123,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case T_NUM:
         {
         if (record->event.pressed) {
-            user_config.num_layer_enabled = !user_config.num_layer_enabled;
-            eeconfig_update_user(user_config.raw);
-            if(user_config.num_layer_enabled) {
+            if(!layer_state_is(_NUM)) {
                 layer_on(_NUM);
             } else {
                 layer_off(_NUM);
@@ -166,7 +134,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case T_TM:
         {
         if (record->event.pressed) {
-            if(user_config.mac_layer_enabled) {
+            if(layer_state_is(_MAC)) {
                 register_code(KC_LOPT);
                 register_code(KC_LCMD);
                 register_code(KC_ESC);
@@ -176,7 +144,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 register_code(KC_ESC);
             }
         } else {
-          if(user_config.mac_layer_enabled) {
+            if(layer_state_is(_MAC)) {
                 unregister_code(KC_LOPT);
                 unregister_code(KC_LCMD);
                 unregister_code(KC_ESC);
